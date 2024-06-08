@@ -1,12 +1,17 @@
 name = "passkey-demo"
-pages_build_output_dir = "./dist"
+compatibility_date = "2023-12-01"
+compatibility_flags = ["nodejs_compat"]
 
 # [vars]
 # MY_VAR = "my-variable"
 
-# [[kv_namespaces]]
-# binding = "MY_KV_NAMESPACE"
-# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[[kv_namespaces]]
+binding = "SESSION_KV"
+id = "5d13904c7e414868ad8130aff8f70b6d"
+
+# kv_namespaces = [
+#   { binding = "SESSION_KV", id = "5d13904c7e414868ad8130aff8f70b6d" },
+# ]
 
 # [[r2_buckets]]
 # binding = "MY_BUCKET"
