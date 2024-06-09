@@ -1,53 +1,52 @@
-import { useState } from "hono/jsx";
-import { render } from "hono/jsx/dom";
-import { hc } from "hono/client";
-import type { AppType } from "./index";
+import { useState } from 'hono/jsx';
+import { render } from 'hono/jsx/dom';
+import { hc } from 'hono/client';
+import type { AppType } from './index';
 
-const client = hc<AppType>("/");
+const client = hc<AppType>('/');
 
 function App() {
-	return (
-		<>
-			<h1>Hello, hono/jsx/dom!</h1>
-			<h2>Example of useState()</h2>
-			<Counter />
-			<h2>Example of API fetch()</h2>
-			<ClockButton />
-		</>
-	);
+  return (
+    <>
+      <h1>Hello, hono/jsx/dom!</h1>
+      <h2>Local Counter</h2>
+      <Counter />
+      <h2>Session Counter</h2>
+      <SessionCounter />
+    </>
+  );
 }
 
 const Counter = () => {
-	const [count, setCount] = useState(0);
-	return (
-		<button type="button" onClick={() => setCount(count + 1)}>
-			You clicked me {count} times
-		</button>
-	);
+  const [count, setCount] = useState(0);
+  return (
+    <button type="button" onClick={() => setCount(count + 1)}>
+      You clicked me {count} times using local variable
+    </button>
+  );
 };
 
-const ClockButton = () => {
-	const [response, setResponse] = useState<string | null>(null);
+const SessionCounter = () => {
+  const [value, setValue] = useState(0);
 
-	const handleClick = async () => {
-		const response = await client.api.clock.$get();
-		const data = await response.json();
-		setResponse(JSON.stringify(data, null, 2));
-	};
+  const handleClick = async () => {
+    const response = await client.api.add.$post();
+    const data = await response.json();
+    setValue(data.value);
+  };
 
-	return (
-		<div>
-			<button type="button" onClick={handleClick}>
-				Get Server Time
-			</button>
-			{response && <pre>{response}</pre>}
-		</div>
-	);
+  return (
+    <div>
+      <button type="button" onClick={handleClick}>
+        You clicked me {value} times using session variable
+      </button>
+    </div>
+  );
 };
 
-const root = document.getElementById("root");
+const root = document.getElementById('root');
 if (!root) {
-	throw new Error("Root element not found");
+  throw new Error('Root element not found');
 }
 
 render(<App />, root);

@@ -1,4 +1,12 @@
+import { Context } from 'hono';
+import { createMiddleware } from 'hono/factory';
+import { getCookie, setCookie } from 'hono/cookie';
+
 type Value = string | number | boolean;
+
+export const EXPIRATION_TTL = 60 * 60 * 24;
+
+const SESSION_COOKIE_NAME = '__session';
 
 export class Session {
   #data: Record<string, Value> = {};
@@ -14,7 +22,7 @@ export class Session {
   constructor(
     sessionId: string,
     kv: KVNamespace,
-    expirationTtl: number = 60 * 60 * 24
+    expirationTtl: number = EXPIRATION_TTL
   ) {
     this.#sessionId = sessionId;
     this.#kv = kv;
@@ -92,3 +100,23 @@ export class Session {
     await this.#kv.delete(this.sessionId);
   }
 }
+
+export const generateAndSetSessionId = (c: Context): string => {
+  const sessionId = crypto.randomUUID();
+  setCookie(c, SESSION_COOKIE_NAME, sessionId, {
+    httpOnly: true,
+    secure: true,
+    path: '/',
+    maxAge: EXPIRATION_TTL,
+  });
+  return sessionId;
+};
+
+export const sessionMiddleware = createMiddleware(
+  async (c: Context, next: () => Promise<void>) => {
+    const sessionId =
+      getCookie(c, SESSION_COOKIE_NAME) || generateAndSetSessionId(c);
+    c.set('session', new Session(sessionId, c.env.SESSION_KV, EXPIRATION_TTL));
+    await next();
+  }
+);
