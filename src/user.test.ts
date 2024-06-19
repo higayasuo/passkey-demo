@@ -93,8 +93,8 @@ describe('user', () => {
       registered: false,
     };
 
-    const uaParser = new UAParser(UA);
-    const os = uaParser.getOS();
+    const uaParser = UAParser(UA);
+    const os = uaParser.os;
     const now = Date.now();
     const authenticator: Authenticator = {
       id: isoBase64URL.fromBuffer(new Uint8Array([1, 2, 3])),

@@ -30,9 +30,11 @@ import {
 import { Env } from '../env';
 import { randomBase64URL } from '../utils';
 import { sessionMiddleware } from '../session';
-import UAParser from 'ua-parser-js';
+//import { UAParser } from 'ua-parser-js';
 
 const { RP_ID, RP_NAME, ORIGIN } = import.meta.env;
+
+//console.log('env', import.meta.env);
 
 const schema = z.object({
   userName: z.string().min(1),
@@ -140,17 +142,17 @@ const passkey = new Hono<Env>()
     );
 
     if (!existingAuthenticator) {
-      const ua = c.req.header('User-Agent');
-      const uaParser = new UAParser(ua);
-      const os = uaParser.getOS();
+      //const ua = c.req.header('User-Agent');
+      //const uaParser = new UAParser(ua);
+      //const os = uaParser.getResult().os;
       const newAuthenticator: Authenticator = {
         id: isoBase64URL.fromBuffer(credentialID),
         publicKey: isoBase64URL.fromBuffer(credentialPublicKey),
         counter,
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        osName: os.name || '',
-        osVersion: os.version || '',
+        osName: '',
+        osVersion: '',
         transports: body.response.transports,
       };
       user.authenticators.push(newAuthenticator);
