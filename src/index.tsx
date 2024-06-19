@@ -1,35 +1,21 @@
 import { Hono } from 'hono';
 
 import { Env } from './env';
-import { sessionMiddleware } from './session';
+import passkey from './api/passkey';
+import { test } from 'vitest';
 
-const app = new Hono<Env>();
-
-app.use('*', sessionMiddleware);
-
-export const route = app.post('/api/add', async (c) => {
-  const value = ((await c.var.session.getNumber('counter')) || 0) + 1;
-  await c.var.session.setNumber('counter', value);
-  return c.json(
-    {
-      value,
-    },
-    200
-  );
-});
-
-export type AppType = typeof route;
-
-app.get('/', (c) => {
+const app = new Hono<Env>().route('/api/passkey', passkey).get('/', (c) => {
   return c.html(
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta content="width=device-width, initial-scale=1" name="viewport" />
+        <title>Passkey Demo</title>
         <link
           rel="stylesheet"
           href="https://cdn.simplecss.org/simple.min.css"
         />
+        <link href="/static/style.css" rel="stylesheet" />
         {import.meta.env.PROD ? (
           <script type="module" src="/static/client.js" />
         ) : (

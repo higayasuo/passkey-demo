@@ -1,48 +1,188 @@
 import { useState } from 'hono/jsx';
 import { render } from 'hono/jsx/dom';
 import { hc } from 'hono/client';
-import type { AppType } from './index';
 
-const client = hc<AppType>('/');
+import {
+  startAuthentication,
+  startRegistration,
+} from '@simplewebauthn/browser';
+
+import app from './index';
+
+const client = hc<typeof app>('/');
 
 function App() {
-  return (
-    <>
-      <h1>Hello, hono/jsx/dom!</h1>
-      <h2>Local Counter</h2>
-      <Counter />
-      <h2>Session Counter</h2>
-      <SessionCounter />
-    </>
-  );
-}
+  const [regSuccess, setRegSuccess] = useState('');
+  const [regError, setRegError] = useState('');
+  const [authSuccess, setAuthSuccess] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [unregSuccess, setUnregSuccess] = useState('');
+  const [unregError, setUnregError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
 
-const Counter = () => {
-  const [count, setCount] = useState(0);
-  return (
-    <button type="button" onClick={() => setCount(count + 1)}>
-      You clicked me {count} times using local variable
-    </button>
-  );
-};
+  const registrationHandler = async () => {
+    setRegSuccess('');
+    setRegError('');
+    setUsernameError('');
 
-const SessionCounter = () => {
-  const [value, setValue] = useState(0);
+    const username = document.getElementById('username') as HTMLInputElement;
+    if (!username || !username.value) {
+      setUsernameError('Username must not be empty');
+      return;
+    }
 
-  const handleClick = async () => {
-    const response = await client.api.add.$post();
-    const data = await response.json();
-    setValue(data.value);
+    const genResp = await client.api.passkey[
+      'generate-registration-options'
+    ].$post({
+      json: { userName: username.value },
+    });
+
+    if (genResp.status === 400) {
+      setRegError((await genResp.json()).error);
+      return;
+    }
+
+    const options = await genResp.json();
+    setRegSuccess(JSON.stringify(options, undefined, 2));
+
+    let startResp;
+    try {
+      startResp = await startRegistration(options);
+    } catch (e: any) {
+      setRegError(e.message);
+      return;
+    }
+    const verifyResp = await client.api.passkey['verify-registration'].$post({
+      json: startResp,
+    });
+
+    if (verifyResp.status === 400 || verifyResp.status === 404) {
+      setRegError((await verifyResp.json()).error);
+      return;
+    }
+
+    const verifyJson = await verifyResp.json();
+
+    if (verifyJson && verifyJson.verified) {
+      setRegSuccess(JSON.stringify(verifyJson, undefined, 2));
+    } else {
+      setRegError(JSON.stringify(verifyJson, undefined, 2));
+    }
+  };
+
+  const authenticationHandler = async () => {
+    setAuthSuccess('');
+    setAuthError('');
+    setUsernameError('');
+
+    const username = document.getElementById('username') as HTMLInputElement;
+    if (!username || !username.value) {
+      setUsernameError('Username must not be empty');
+      return;
+    }
+
+    const genResp = await client.api.passkey[
+      'generate-authentication-options'
+    ].$post({
+      json: { userName: username.value },
+    });
+
+    if (genResp.status === 404) {
+      setAuthError((await genResp.json()).error);
+      return;
+    }
+
+    const options = await genResp.json();
+    setAuthSuccess(JSON.stringify(options, undefined, 2));
+
+    let startResp;
+    try {
+      startResp = await startAuthentication(options);
+    } catch (e: any) {
+      setAuthError(e.message);
+      return;
+    }
+    const verifyResp = await client.api.passkey['verify-authentication'].$post({
+      json: startResp,
+    });
+
+    if (verifyResp.status === 400 || verifyResp.status === 404) {
+      setAuthError((await verifyResp.json()).error);
+      return;
+    }
+
+    const verifyJson = await verifyResp.json();
+
+    if (verifyJson && verifyJson.verified) {
+      setAuthSuccess(JSON.stringify(verifyJson, undefined, 2));
+    } else {
+      setAuthError(JSON.stringify(verifyJson, undefined, 2));
+    }
+  };
+
+  const unregistrationHandler = async () => {
+    setUnregSuccess('');
+    setUnregError('');
+    setUsernameError('');
+
+    const username = document.getElementById('username') as HTMLInputElement;
+    if (!username || !username.value) {
+      setUsernameError('Username must not be empty');
+      return;
+    }
+
+    const resp = await client.api.passkey['unregister'].$post({
+      json: { userName: username.value },
+    });
+
+    if (resp.status === 404) {
+      setRegError((await resp.json()).error);
+      return;
+    }
+
+    setUnregSuccess(JSON.stringify(await resp.json(), undefined, 2));
   };
 
   return (
-    <div>
-      <button type="button" onClick={handleClick}>
-        You clicked me {value} times using session variable
-      </button>
-    </div>
+    <>
+      <h1>Passkey Demo</h1>
+
+      <section>
+        <input
+          type="text"
+          id="username"
+          autoComplete="username webauthn"
+          autofocus
+        />
+        <span class="error">{usernameError}</span>
+      </section>
+
+      <section id="registration">
+        <button onClick={registrationHandler}>
+          <strong>Register</strong>
+        </button>
+        <p class="success">{regSuccess}</p>
+        <p class="error">{regError}</p>
+      </section>
+
+      <section id="authentication">
+        <button onClick={authenticationHandler}>
+          <strong>Authenticate</strong>
+        </button>
+        <p class="success">{authSuccess}</p>
+        <p class="error">{authError}</p>
+      </section>
+
+      <section id="unregistration">
+        <button onClick={unregistrationHandler}>
+          <strong>Unregister</strong>
+        </button>
+        <p class="success">{unregSuccess}</p>
+        <p class="error">{unregError}</p>
+      </section>
+    </>
   );
-};
+}
 
 const root = document.getElementById('root');
 if (!root) {

@@ -7,14 +7,23 @@
     "deploy": "$npm_execpath run build && wrangler pages deploy"
   },
   "dependencies": {
-    "hono": "^4.4.2"
+    "@hono/zod-validator": "^0.2.2",
+    "@simplewebauthn/browser": "^9.0.1",
+    "@simplewebauthn/server": "^9.0.3",
+    "hono": "^4.4.2",
+    "memfs": "^4.9.3",
+    "ua-parser-js": "^1.0.38",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240529.0",
     "@hono/vite-cloudflare-pages": "^0.4.0",
     "@hono/vite-dev-server": "^0.12.1",
+    "@simplewebauthn/types": "^9.0.1",
+    "@types/ua-parser-js": "^0.7.39",
     "miniflare": "^3.20240524.2",
     "vite": "^5.2.12",
+    "vite-plugin-node-polyfills": "^0.22.0",
     "vitest": "^1.5.3",
     "wrangler": "^3.57.2"
   }

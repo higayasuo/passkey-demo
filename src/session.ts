@@ -8,7 +8,17 @@ export const EXPIRATION_TTL = 60 * 60 * 24;
 
 const SESSION_COOKIE_NAME = '__session';
 
-export class Session {
+// type Keys<
+//   S extends String = string,
+//   N extends String = string,
+//   B extends String = string
+// > = {
+//   StringValueKey?: S;
+//   NumberValueKey?: N;
+//   BooleanValueKey?: B;
+// };
+
+export class Session<T extends Record<string, Value> = {}> {
   #data: Record<string, Value> = {};
 
   #sessionId: string;
@@ -52,46 +62,52 @@ export class Session {
     this.#loaded = true;
   }
 
-  private async get<T>(key: string): Promise<T | undefined> {
+  public async get<K extends keyof T>(key: K): Promise<T[K] | undefined> {
     await this.loadData();
-    return this.#data[key] as T;
+    return this.#data[key as string] as T[K];
   }
 
-  public async getString(key: string): Promise<string | undefined> {
-    return this.get<string>(key);
-  }
+  // public async getString(
+  //   key: K['StringValueKey']
+  // ): Promise<string | undefined> {
+  //   return this.get<string>(key as string);
+  // }
 
-  public async getNumber(key: string): Promise<number | undefined> {
-    return this.get<number>(key);
-  }
+  // public async getNumber(
+  //   key: K['NumberValueKey']
+  // ): Promise<number | undefined> {
+  //   return this.get<number>(key as string);
+  // }
 
-  public async getBoolean(key: string): Promise<boolean | undefined> {
-    return this.get<boolean>(key);
-  }
+  // public async getBoolean(
+  //   key: K['BooleanValueKey']
+  // ): Promise<boolean | undefined> {
+  //   return this.get<boolean>(key as string);
+  // }
 
-  private async set<T extends Value>(key: string, value: T) {
+  public async set<K extends keyof T>(key: K, value: T[K]) {
     await this.loadData();
-    this.#data[key] = value;
+    this.#data[key as string] = value;
     await this.#kv.put(this.sessionId, JSON.stringify(this.#data), {
       expirationTtl: this.expirationTtl,
     });
   }
 
-  public async setString(key: string, value: string) {
-    return this.set<string>(key, value);
-  }
+  // public async setString(key: K['StringValueKey'], value: string) {
+  //   return this.set<string>(key as string, value);
+  // }
 
-  public async setNumber(key: string, value: number) {
-    return this.set<number>(key, value);
-  }
+  // public async setNumber(key: K['NumberValueKey'], value: number) {
+  //   return this.set<number>(key as string, value);
+  // }
 
-  public async setBoolean(key: string, value: boolean) {
-    return this.set<boolean>(key, value);
-  }
+  // public async setBoolean(key: K['BooleanValueKey'], value: boolean) {
+  //   return this.set<boolean>(key as string, value);
+  // }
 
-  public async delete(key: string) {
+  public async delete<K extends keyof T>(key: K) {
     await this.loadData();
-    delete this.#data[key];
+    delete this.#data[key as string];
     await this.#kv.put(this.sessionId, JSON.stringify(this.#data));
   }
 
@@ -108,6 +124,7 @@ export const generateAndSetSessionId = (c: Context): string => {
     secure: true,
     path: '/',
     maxAge: EXPIRATION_TTL,
+    sameSite: 'Strict',
   });
   return sessionId;
 };

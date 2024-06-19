@@ -56,9 +56,9 @@ describe('session', () => {
     const kv = (await mf.getKVNamespace('SESSION_KV')) as KVNamespace;
     const data = { test: 'aaa' };
     kv.put('session_id', JSON.stringify(data));
-    const session = new Session('session_id', kv);
+    const session = new Session<{ test: string }>('session_id', kv);
 
-    expect(await session.getString('test')).toEqual('aaa');
+    expect(await session.get('test')).toEqual('aaa');
   });
 
   it('loadData when data does not exist in KV', async () => {
@@ -68,12 +68,12 @@ describe('session', () => {
       kvNamespaces: ['SESSION_KV'],
     });
     const kv = (await mf.getKVNamespace('SESSION_KV')) as KVNamespace;
-    const session = new Session('session_id', kv);
+    const session = new Session<{ test: string }>('session_id', kv);
 
-    expect(await session.getString('test')).toBeUndefined();
+    expect(await session.get('test')).toBeUndefined();
   });
 
-  it('getNumber', async () => {
+  it('get number from kv', async () => {
     const mf = new Miniflare({
       modules: true,
       script: '',
@@ -82,9 +82,9 @@ describe('session', () => {
     const kv = (await mf.getKVNamespace('SESSION_KV')) as KVNamespace;
     const data = { test: 1 };
     kv.put('session_id', JSON.stringify(data));
-    const session = new Session('session_id', kv);
+    const session = new Session<{ test: number }>('session_id', kv);
 
-    expect(await session.getNumber('test')).toEqual(1);
+    expect(await session.get('test')).toEqual(1);
   });
 
   it('getBoolean', async () => {
@@ -96,37 +96,37 @@ describe('session', () => {
     const kv = (await mf.getKVNamespace('SESSION_KV')) as KVNamespace;
     const data = { test: false };
     kv.put('session_id', JSON.stringify(data));
-    const session = new Session('session_id', kv);
+    const session = new Session<{ test: boolean }>('session_id', kv);
 
-    expect(await session.getBoolean('test')).toEqual(false);
+    expect(await session.get('test')).toEqual(false);
   });
 
-  it('setString', async () => {
+  it('set string', async () => {
     const mf = new Miniflare({
       modules: true,
       script: '',
       kvNamespaces: ['SESSION_KV'],
     });
     const kv = (await mf.getKVNamespace('SESSION_KV')) as KVNamespace;
-    const session = new Session('session_id', kv);
-    await session.setString('test', 'aaa');
+    const session = new Session<{ test: string }>('session_id', kv);
+    await session.set('test', 'aaa');
 
-    expect(await session.getString('test')).toEqual('aaa');
+    expect(await session.get('test')).toEqual('aaa');
     const data = await kv.get('session_id');
     expect(data).toEqual('{"test":"aaa"}');
   });
 
-  it('setNumber', async () => {
+  it('set number', async () => {
     const mf = new Miniflare({
       modules: true,
       script: '',
       kvNamespaces: ['SESSION_KV'],
     });
     const kv = (await mf.getKVNamespace('SESSION_KV')) as KVNamespace;
-    const session = new Session('session_id', kv);
-    await session.setNumber('test', 1);
+    const session = new Session<{ test: number }>('session_id', kv);
+    await session.set('test', 1);
 
-    expect(await session.getNumber('test')).toEqual(1);
+    expect(await session.get('test')).toEqual(1);
     const data = await kv.get('session_id');
     expect(data).toEqual('{"test":1}');
   });
@@ -138,10 +138,10 @@ describe('session', () => {
       kvNamespaces: ['SESSION_KV'],
     });
     const kv = (await mf.getKVNamespace('SESSION_KV')) as KVNamespace;
-    const session = new Session('session_id', kv);
-    await session.setBoolean('test', true);
+    const session = new Session<{ test: boolean }>('session_id', kv);
+    await session.set('test', true);
 
-    expect(await session.getNumber('test')).toEqual(true);
+    expect(await session.get('test')).toEqual(true);
     const data = await kv.get('session_id');
     expect(data).toEqual('{"test":true}');
   });
@@ -153,13 +153,13 @@ describe('session', () => {
       kvNamespaces: ['SESSION_KV'],
     });
     const kv = (await mf.getKVNamespace('SESSION_KV')) as KVNamespace;
-    const session = new Session('session_id', kv);
-    await session.setString('test', 'aaa');
+    const session = new Session<{ test: string }>('session_id', kv);
+    await session.set('test', 'aaa');
 
-    expect(await session.getString('test')).toEqual('aaa');
+    expect(await session.get('test')).toEqual('aaa');
 
     await session.delete('test');
-    expect(await session.getString('test')).toBeUndefined();
+    expect(await session.get('test')).toBeUndefined();
     const data = await kv.get('session_id');
     expect(data).toEqual('{}');
   });
@@ -171,19 +171,22 @@ describe('session', () => {
       kvNamespaces: ['SESSION_KV'],
     });
     const kv = (await mf.getKVNamespace('SESSION_KV')) as KVNamespace;
-    const session = new Session('session_id', kv);
-    await session.setString('test', 'aaa');
-    await session.setString('test2', 'bbb');
+    const session = new Session<{ test: string; test2: string }>(
+      'session_id',
+      kv
+    );
+    await session.set('test', 'aaa');
+    await session.set('test2', 'bbb');
 
-    expect(await session.getString('test')).toEqual('aaa');
-    expect(await session.getString('test2')).toEqual('bbb');
+    expect(await session.get('test')).toEqual('aaa');
+    expect(await session.get('test2')).toEqual('bbb');
 
     await session.clear();
 
     const data = await kv.get('session_id');
     expect(data).toEqual(null);
-    expect(await session.getString('test')).toBeUndefined();
-    expect(await session.getString('test2')).toBeUndefined();
+    expect(await session.get('test')).toBeUndefined();
+    expect(await session.get('test2')).toBeUndefined();
   });
 });
 
@@ -238,6 +241,7 @@ describe('sessionMiddleware', () => {
       maxAge: 86400,
       path: '/',
       secure: true,
+      sameSite: 'Strict',
     });
   });
 
