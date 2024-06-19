@@ -30,7 +30,7 @@ import {
 import { Env } from '../env';
 import { randomBase64URL } from '../utils';
 import { sessionMiddleware } from '../session';
-//import { UAParser } from 'ua-parser-js';
+import Bowser from 'bowser';
 
 const { RP_ID, RP_NAME, ORIGIN } = import.meta.env;
 
@@ -141,18 +141,19 @@ const passkey = new Hono<Env>()
       credentialID
     );
 
+    const now = Date.now();
     if (!existingAuthenticator) {
-      //const ua = c.req.header('User-Agent');
-      //const uaParser = new UAParser(ua);
-      //const os = uaParser.getResult().os;
+      const ua = c.req.header('User-Agent');
+      const bowser = Bowser.parse(ua || '');
+      const os = bowser.os;
       const newAuthenticator: Authenticator = {
         id: isoBase64URL.fromBuffer(credentialID),
         publicKey: isoBase64URL.fromBuffer(credentialPublicKey),
         counter,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        osName: '',
-        osVersion: '',
+        createdAt: now,
+        updatedAt: now,
+        osName: os.name || '',
+        osVersion: os.version || '',
         transports: body.response.transports,
       };
       user.authenticators.push(newAuthenticator);
@@ -187,7 +188,8 @@ const passkey = new Hono<Env>()
         allowCredentials: user.authenticators.map((authenticator) => ({
           id: isoBase64URL.toBuffer(authenticator.id),
           type: 'public-key',
-          transports: authenticator.transports,
+          //transports: authenticator.transports,
+          transports: ['internal'],
         })),
         userVerification: 'preferred',
         rpID: RP_ID,
@@ -225,7 +227,7 @@ const passkey = new Hono<Env>()
     const authenticator = findAuthenticator(user.authenticators, credentialID);
 
     if (!authenticator) {
-      return c.json({ error: 'authenticator is not registered' }, 400);
+      return c.json({ error: 'authenticator is not registered' }, 404);
     }
 
     let verification: VerifiedAuthenticationResponse;
@@ -257,6 +259,7 @@ const passkey = new Hono<Env>()
     }
 
     authenticator.counter = authenticationInfo.newCounter;
+    authenticator.updatedAt = Date.now();
 
     await setUser(c.env.USER_KV, user);
     await c.var.session.set('loggedIn', true);
@@ -272,12 +275,18 @@ const passkey = new Hono<Env>()
   .post('/unregister', zValidator('json', schema), async (c) => {
     const { userName } = await c.req.valid('json');
 
-    if (!userName) {
-      return c.json({ error: `No user name found: ${userName}` }, 404);
-    }
-
     await deleteUserByName(c.env.USER_KV, userName);
     return c.json({ success: true }, 200);
+  })
+  .get('/authenticators', zValidator('query', schema), async (c) => {
+    const { userName } = await c.req.valid('query');
+
+    const user = await getUserByName(c.env.USER_KV, userName);
+
+    if (!user) {
+      return c.json({ error: `User not found: ${userName}` }, 404);
+    }
+    return c.json({ authenticators: user.authenticators }, 200);
   });
 
 export default passkey;

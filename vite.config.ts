@@ -1,9 +1,9 @@
 import pages from '@hono/vite-cloudflare-pages';
 import devServer from '@hono/vite-dev-server';
 import adapter from '@hono/vite-dev-server/cloudflare';
+//import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 import { defineConfig } from 'vite';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig(({ mode }) => {
   const define = {
@@ -39,16 +39,14 @@ export default defineConfig(({ mode }) => {
     },
     define,
     plugins: [
-      nodePolyfills({
-        globals: {
-          Buffer: true,
-          global: false,
-          process: true,
-        },
-        overrides: {
-          fs: 'memfs',
-        },
-      }),
+      // nodePolyfills({
+      //   globals: {
+      //     global: false,
+      //     Buffer: true,
+      //     process: true,
+      //   },
+      //   protocolImports: true,
+      // }),
       pages(),
       devServer({
         adapter,

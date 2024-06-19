@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { Miniflare } from 'miniflare';
 import { User, Authenticator } from './types';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
-import UAParser from 'ua-parser-js';
+import Bowser from 'bowser';
 
 import {
   getUserByID,
@@ -93,19 +93,20 @@ describe('user', () => {
       registered: false,
     };
 
-    const uaParser = UAParser(UA);
-    const os = uaParser.os;
+    const bowser = Bowser.parse(UA);
+    const os = bowser.os;
     const now = Date.now();
     const authenticator: Authenticator = {
       id: isoBase64URL.fromBuffer(new Uint8Array([1, 2, 3])),
       publicKey: isoBase64URL.fromBuffer(new Uint8Array([4, 5, 6])),
       counter: 0,
-      osName: os.name || '',
-      osVersion: os.version || '',
+      osName: os?.name || '',
+      osVersion: os?.version || '',
       createdAt: now,
       updatedAt: now,
       transports: ['internal'],
     };
+    console.log(authenticator);
 
     user.authenticators.push(authenticator);
     await putAuthenticatorIDUserID(kv, authenticator.id, user.id);
@@ -137,15 +138,15 @@ describe('user', () => {
       registered: false,
     };
 
-    const uaParser = new UAParser(UA);
-    const os = uaParser.getOS();
+    const bowser = Bowser.parse(UA);
+    const os = bowser.os;
     const now = Date.now();
     const authenticator: Authenticator = {
       id: isoBase64URL.fromBuffer(new Uint8Array([1, 2, 3])),
       publicKey: isoBase64URL.fromBuffer(new Uint8Array([4, 5, 6])),
       counter: 0,
-      osName: os.name || '',
-      osVersion: os.version || '',
+      osName: os?.name || '',
+      osVersion: os?.version || '',
       createdAt: now,
       updatedAt: now,
       transports: ['internal'],
@@ -180,15 +181,15 @@ describe('user', () => {
       registered: false,
     };
 
-    const uaParser = new UAParser(UA);
-    const os = uaParser.getOS();
+    const bowser = Bowser.parse(UA);
+    const os = bowser.os;
     const now = Date.now();
     const authenticator: Authenticator = {
       id: isoBase64URL.fromBuffer(new Uint8Array([1, 2, 3])),
       publicKey: isoBase64URL.fromBuffer(new Uint8Array([4, 5, 6])),
       counter: 0,
-      osName: os.name || '',
-      osVersion: os.version || '',
+      osName: os!.name || '',
+      osVersion: os!.version || '',
       createdAt: now,
       updatedAt: now,
       transports: ['internal'],
@@ -219,15 +220,15 @@ describe('user', () => {
       registered: false,
     };
 
-    const uaParser = new UAParser(UA);
-    const os = uaParser.getOS();
+    const bowser = Bowser.parse(UA);
+    const os = bowser.os;
     const now = Date.now();
     const authenticator: Authenticator = {
       id: isoBase64URL.fromBuffer(new Uint8Array([1, 2, 3])),
       publicKey: isoBase64URL.fromBuffer(new Uint8Array([4, 5, 6])),
       counter: 0,
-      osName: os.name || '',
-      osVersion: os.version || '',
+      osName: os!.name || '',
+      osVersion: os!.version || '',
       createdAt: now,
       updatedAt: now,
       transports: ['internal'],
@@ -261,15 +262,15 @@ describe('user', () => {
       registered: false,
     };
 
-    const uaParser = new UAParser(UA);
-    const os = uaParser.getOS();
+    const bowser = Bowser.parse(UA);
+    const os = bowser.os;
     const now = Date.now();
     const authenticator: Authenticator = {
       id: isoBase64URL.fromBuffer(new Uint8Array([1, 2, 3])),
       publicKey: isoBase64URL.fromBuffer(new Uint8Array([4, 5, 6])),
       counter: 0,
-      osName: os.name || '',
-      osVersion: os.version || '',
+      osName: os!.name || '',
+      osVersion: os!.version || '',
       createdAt: now,
       updatedAt: now,
       transports: ['internal'],

@@ -17,7 +17,7 @@ function App() {
   const [authSuccess, setAuthSuccess] = useState('');
   const [authError, setAuthError] = useState('');
   const [unregSuccess, setUnregSuccess] = useState('');
-  const [unregError, setUnregError] = useState('');
+  const [authenticatorsSuccess, setAuthenticatorsSuccess] = useState('');
   const [usernameError, setUsernameError] = useState('');
 
   const registrationHandler = async () => {
@@ -122,7 +122,6 @@ function App() {
 
   const unregistrationHandler = async () => {
     setUnregSuccess('');
-    setUnregError('');
     setUsernameError('');
 
     const username = document.getElementById('username') as HTMLInputElement;
@@ -135,12 +134,28 @@ function App() {
       json: { userName: username.value },
     });
 
-    if (resp.status === 404) {
-      setRegError((await resp.json()).error);
+    if (resp.status === 200) {
+      setUnregSuccess(JSON.stringify(await resp.json(), undefined, 2));
+    }
+  };
+
+  const authenticatorsHandler = async () => {
+    setAuthenticatorsSuccess('');
+    setUsernameError('');
+
+    const username = document.getElementById('username') as HTMLInputElement;
+    if (!username || !username.value) {
+      setUsernameError('Username must not be empty');
       return;
     }
 
-    setUnregSuccess(JSON.stringify(await resp.json(), undefined, 2));
+    const resp = await client.api.passkey.authenticators.$get({
+      query: { userName: username.value },
+    });
+
+    if (resp.status === 200) {
+      setAuthenticatorsSuccess(JSON.stringify(await resp.json(), undefined, 2));
+    }
   };
 
   return (
@@ -178,7 +193,13 @@ function App() {
           <strong>Unregister</strong>
         </button>
         <p class="success">{unregSuccess}</p>
-        <p class="error">{unregError}</p>
+      </section>
+
+      <section id="authenticators">
+        <button onClick={authenticatorsHandler}>
+          <strong>Authenticators</strong>
+        </button>
+        <p class="success">{authenticatorsSuccess}</p>
       </section>
     </>
   );
