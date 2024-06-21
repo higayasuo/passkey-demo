@@ -71,7 +71,8 @@ export const Account = () => {
 
   const handleRegisterPasskey = async () => {
     await registrationHandler(email);
-    if (!regError) {
+    await authenticatorsHandler(email);
+    if (regError) {
       console.error(regError);
     }
   };

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'hono/jsx';
 import { useGoogleAuth } from './useGoogleAuth';
 
 const EMAIL = 'email';
-const HAS_PASSKEY = 'has_passekey';
+const HAS_PASSKEY = 'has_passkey';
 const LOGIN = 'login';
 const IS_CREATED = 'is_created';
 
@@ -16,7 +16,6 @@ export const useAccount = () => {
     const email = localStorage.getItem(EMAIL);
     const hasPasskey = toBoolean(localStorage.getItem(HAS_PASSKEY) || 'false');
     const login = toBoolean(localStorage.getItem(LOGIN) || 'false');
-    console.log('useAccount hasPasskey :>> ', hasPasskey);
     if (email) {
       setEmail(() => email);
     }

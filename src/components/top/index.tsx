@@ -84,14 +84,12 @@ export const Top = () => {
 
     if (userName) {
       handleLogin(userName);
-      if (!hasPasskey) {
+      if (localStorage.getItem('has_passkey') === 'false') {
         handleOpenModal();
       }
-
       window.history.replaceState({}, '', '/');
-      // window.location.reload();
     }
-  });
+  }, [hasPasskey]);
 
   return (
     <main class="top-page">

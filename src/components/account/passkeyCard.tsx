@@ -69,7 +69,6 @@ export const PasskeyCard = ({
                     onlyDate
                   )}
                 </p>
-                <p>使用目的：バックアップ</p>
                 <p>
                   登録OS：{info.osName} {info.osVersion}
                 </p>
