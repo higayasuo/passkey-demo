@@ -46,17 +46,18 @@ export const Account = () => {
   const { email, hasPasskey } = useAccount();
 
   useEffect(() => {
+    setPasskeyInfos(() => []);
+    console.log('passkeyInfos :>> ', passkeyInfos);
+    console.log('authenticatorsSuccess :>> ', authenticatorsSuccess);
     if (!email) {
       return;
     }
-    if (!hasPasskey) {
-      setPasskeyInfos([]);
-    }
-
-    if (authenticatorsSuccess) {
+    if (authenticatorsSuccess.length > 0) {
       const json = JSON.parse(authenticatorsSuccess);
-      setPasskeyInfos(json.authenticators);
+      setPasskeyInfos(() => json.authenticators);
       return;
+    } else {
+      setPasskeyInfos(() => []);
     }
 
     const f = async () => {
@@ -76,10 +77,7 @@ export const Account = () => {
   };
 
   const handleReload = async () => {
-    if (!email) {
-      return;
-    }
-    await authenticatorsHandler(email);
+    setPasskeyInfos(() => []);
   };
 
   return (
@@ -89,7 +87,9 @@ export const Account = () => {
       <Container title="現在のログイン設定">
         <ol>
           <li>Googleアカウントによるサインイン</li>
-          <li>パスキーを利用したサインイン</li>
+          {hasPasskey && passkeyInfos.length > 0 && (
+            <li>パスキーを利用したサインイン</li>
+          )}
         </ol>
       </Container>
       <Container title="アカウント情報">
@@ -97,11 +97,9 @@ export const Account = () => {
       </Container>
       <Container title="設定されているパスキー">
         <div class="passkey-div">
-          {/* {passkeyInfos.map((info) => (
-            <PasskeyCard info={info} />
-          ))} */}
           <div class="card-area">
-            {passkeyInfos.length === 0 ? (
+            {/* TODO ローカル以外のパスキーもある */}
+            {!hasPasskey && (
               <>
                 <h4>現在、パスキーはありません。</h4>
                 <img
@@ -110,11 +108,13 @@ export const Account = () => {
                   alt="auth-icon"
                 />
               </>
-            ) : (
-              passkeyInfos.map((info) => (
-                <PasskeyCard info={info} handleReload={handleReload} />
-              ))
             )}
+
+            {hasPasskey &&
+              passkeyInfos.length !== 0 &&
+              passkeyInfos.map((info, index) => (
+                <PasskeyCard info={info} handleReload={handleReload} />
+              ))}
           </div>
           <Button
             text="新たにパスキーを作成する"

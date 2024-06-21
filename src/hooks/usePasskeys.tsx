@@ -56,7 +56,7 @@ export const usePasskeys = () => {
     const verifyJson = await verifyResp.json();
     if (verifyJson && verifyJson.verified) {
       setRegSuccess(JSON.stringify(verifyJson, undefined, 2));
-      localStorage.setItem('has_passeky', 'true');
+      localStorage.setItem('has_passekey', 'true');
     } else {
       setRegError(JSON.stringify(verifyJson, undefined, 2));
     }
@@ -116,6 +116,7 @@ export const usePasskeys = () => {
     });
     if (resp.status === 200) {
       setUnregSuccess(JSON.stringify(await resp.json(), undefined, 2));
+      localStorage.setItem('has_passekey', 'false');
     }
   };
   const authenticatorsHandler = async (email: string) => {

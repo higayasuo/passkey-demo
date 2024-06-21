@@ -2,6 +2,7 @@ import { Button } from '../common/button';
 import { useAccount } from '../../hooks/useAccount';
 import { useRouter } from '../../hooks/useRouter';
 import { usePasskeys } from '../../hooks/usePasskeys';
+import { startViewTransition } from 'hono/jsx';
 
 const GoogleLogin = () => {
   const { handleGoogleLogin } = useAccount();
@@ -9,7 +10,13 @@ const GoogleLogin = () => {
   return (
     <div class="google-login">
       <img src="/static/img/google-icon.svg" alt="google-icon" />
-      <a href="#" onClick={handleGoogleLogin}>
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          handleGoogleLogin();
+        }}
+      >
         Googleアカウント連携
       </a>
     </div>
@@ -18,16 +25,18 @@ const GoogleLogin = () => {
 
 const HasPasseky = () => {
   const { handleRouteChange } = useRouter();
-  const { authSuccess, authError, authenticationHandler } = usePasskeys();
+  const { authError, authenticationHandler } = usePasskeys();
   const { email, handlePasskeyLogin } = useAccount();
 
   const handleAuthentication = async () => {
     await authenticationHandler(email);
 
-    if (authSuccess && !authError) {
+    if (!authError) {
       handlePasskeyLogin();
-      handleRouteChange('top');
+      startViewTransition(() => window.location.reload());
+      // handleRouteChange('top');
     }
+    // TODO エラーメッセージを表示する
   };
 
   return (

@@ -11,14 +11,17 @@ type SigninModalProps = {
 
 const SiginedInModal = ({ type, handleClose }: SigninModalProps) => {
   // const { handleRouteChange } = useRouter();
-  const { email } = useAccount();
+  const { email, handlePasskeyLogin } = useAccount();
   const { regSuccess, regError, registrationHandler } = usePasskeys();
 
   const handleRegisterPasskey = async () => {
     await registrationHandler(email);
     if (!regSuccess && regError) {
-      confirm(regError);
+      // TODO エラーメッセージを表示する
+      // confirm(regError);
+      return;
     }
+    handlePasskeyLogin();
     handleClose();
   };
 
@@ -68,17 +71,26 @@ const SiginedInModal = ({ type, handleClose }: SigninModalProps) => {
 
 export const Top = () => {
   const [openModal, setOpenModal] = useState(false);
-  const { isCreated } = useAccount();
+  const { handleLogin, hasPasskey } = useAccount();
 
   const handleOpenModal = () => startViewTransition(() => setOpenModal(true));
   const handleCloseModal = () => {
-    // setOpenModal(false);
     startViewTransition(() => setOpenModal(false));
-    // window.history.replaceState(null, '', window.location.pathname);
   };
 
   useEffect(() => {
-    if (isCreated()) handleOpenModal();
+    const searchParams = new URLSearchParams(location.search);
+    const userName = searchParams.get('userName');
+
+    if (userName) {
+      handleLogin(userName);
+      if (!hasPasskey) {
+        handleOpenModal();
+      }
+
+      window.history.replaceState({}, '', '/');
+      // window.location.reload();
+    }
   });
 
   return (

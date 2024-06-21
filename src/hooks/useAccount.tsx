@@ -1,24 +1,32 @@
 import { useEffect, useState } from 'hono/jsx';
 import { useGoogleAuth } from './useGoogleAuth';
 
+const EMAIL = 'email';
+const HAS_PASSKEY = 'has_passekey';
+const LOGIN = 'login';
+const IS_CREATED = 'is_created';
+
 export const useAccount = () => {
   const [email, setEmail] = useState<string>('');
-  const [hasPasskey, setHasPasskey] = useState<string>('');
+  const [hasPasskey, setHasPasskey] = useState<boolean>(false);
   const [login, setLogin] = useState<boolean>(false);
   const { handleGoogleAuth } = useGoogleAuth();
 
   useEffect(() => {
-    const email = localStorage.getItem('email');
-    const hasPasskey = localStorage.getItem('has_passeky');
-    const login = localStorage.getItem('login');
+    const email = localStorage.getItem(EMAIL);
+    const hasPasskey = toBoolean(localStorage.getItem(HAS_PASSKEY) || 'false');
+    const login = toBoolean(localStorage.getItem(LOGIN) || 'false');
+    console.log('useAccount hasPasskey :>> ', hasPasskey);
     if (email) {
-      setEmail(email);
+      setEmail(() => email);
     }
-    if (hasPasskey) {
-      setHasPasskey(hasPasskey);
-    }
-    setLogin(toBoolean(login || 'false'));
-  }, [localStorage]);
+    setHasPasskey(() => hasPasskey);
+    setLogin(login);
+  }, [
+    localStorage.getItem(EMAIL),
+    localStorage.getItem(HAS_PASSKEY),
+    localStorage.getItem(LOGIN),
+  ]);
 
   const toBoolean = (booleanStr: string) => {
     return booleanStr.toLowerCase() === 'true';
@@ -26,36 +34,31 @@ export const useAccount = () => {
 
   const handleGoogleLogin = () => {
     // TODO 本来はIDトークンが返ってきたタイミングでフラグを切り替える
-    !hasPasskey && localStorage.setItem('is_created', 'true');
-    localStorage.setItem('login', 'true');
+    !hasPasskey && localStorage.setItem(IS_CREATED, 'true');
     handleGoogleAuth();
   };
 
   const isCreated = (): boolean => {
-    // const loginType = localStorage.getItem('login_type');
-    // localStorage.removeItem('login_type');
-
-    // return !hasPasskey && loginType === 'google';
-    const loginType = localStorage.getItem('is_created');
-    localStorage.removeItem('is_created');
+    const loginType = localStorage.getItem(IS_CREATED);
+    localStorage.removeItem(IS_CREATED);
 
     return loginType ? toBoolean(loginType) : false;
   };
 
   const handleLogin = (email: string) => {
-    localStorage.setItem('email', email);
-    localStorage.setItem('login', 'true');
+    localStorage.setItem(EMAIL, email);
+    localStorage.setItem(LOGIN, 'true');
     setEmail(() => email);
+    setLogin(() => true);
   };
 
   const handlePasskeyLogin = () => {
-    localStorage.setItem('login', 'true');
+    localStorage.setItem(LOGIN, 'true');
     setLogin(() => true);
   };
 
   const handleLogout = () => {
-    localStorage.setItem('login', 'false');
-    localStorage.removeItem('login_type');
+    localStorage.setItem(LOGIN, 'false');
     setLogin(() => false);
     setEmail(() => '');
   };

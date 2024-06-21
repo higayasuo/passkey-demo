@@ -18,9 +18,9 @@ export const GoogleCard = () => {
         </Modal>
       )}
       <Card
-        btnLabel="異なるGoogleアカウントに紐づける"
+        // btnLabel="異なるGoogleアカウントに紐づける"
         type="google"
-        onClick={handleOpen}
+        // onClick={handleOpen}
       >
         <>
           <img src="/static/img/google-icon.svg" alt="google-icon" />
