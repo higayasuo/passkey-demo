@@ -20,10 +20,10 @@ const app = new Hono<Env>()
           <meta charSet="utf-8" />
           <meta content="width=device-width, initial-scale=1" name="viewport" />
           <title>Passkey Demo</title>
-          <link
+          {/* <link
             rel="stylesheet"
             href="https://cdn.simplecss.org/simple.min.css"
-          />
+          /> */}
           <link href="/static/style.css" rel="stylesheet" />
           {import.meta.env.PROD ? (
             <script type="module" src="/static/client.js" />

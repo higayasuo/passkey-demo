@@ -10,7 +10,7 @@ export const useGoogleAuth = () => {
 
   const handleGetOption = async () => {
     setOptError('');
-    const res = await client.google.options.$get();
+    const res = await client.api.auth['auth-options'].$get();
 
     if (res.status === 400) {
       setOptError('faild to get oidc url');

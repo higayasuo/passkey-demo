@@ -33,7 +33,6 @@ const auth = new Hono<Env>()
     const searchParams = new URLSearchParams(params);
     const url = `${authorization_endpoint}?${searchParams.toString()}`;
     return c.text(url);
-  })
-  );
+  });
 
 export default auth;
