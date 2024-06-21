@@ -147,12 +147,7 @@ export const PasskeyCard = ({
       <>
         <h3>パスキーを削除しました</h3>
         <img src="/static/img/trash-icon.svg" alt="trash-icon" />
-        <p>
-          サーバーに登録されている情報は削除されました。デバイスに登録されている情報は、「
-          <span class="bold">設定 &rarr; パスワード &rarr; マイパスワード</span>
-          」から
-          <span class="bold warning">ご自身で削除</span>してください
-        </p>
+        <p>サーバーに登録されている情報は削除されました。</p>
 
         <div class="btn-area">
           <Button
