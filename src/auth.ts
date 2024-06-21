@@ -5,7 +5,9 @@ import * as jose from 'jose';
 
 import { Env } from './env';
 import { sessionMiddleware } from './session';
-import type { AuthParams, PubKeys } from './types';
+import type { AuthParams, PubKeys, User } from './types';
+import { getUserByName } from './user';
+import { randomBase64URL } from './utils';
 
 export const createAuthParams = (): AuthParams => {
   const code_verifier = oauth2.generateRandomCodeVerifier();
@@ -62,7 +64,7 @@ export const verifyIdToken = async (
 };
 
 const auth = new Hono<Env>()
-  .use(sessionMiddleware)
+  //.use(sessionMiddleware)
   .get('/callback', async (c) => {
     try {
       const client = getClient(c);
@@ -72,6 +74,8 @@ const auth = new Hono<Env>()
         'nonce',
         'code_verifier'
       );
+      //console.log('state :>> ', state);
+      //console.log('url :>> ', c.req.url);
       const params = oauth2.validateAuthResponse(
         as,
         client,
@@ -111,11 +115,22 @@ const auth = new Hono<Env>()
         as.jwks_uri as string
       );
 
-      console.log('login :>> ', true);
-      console.log('iss :>> ', verified.payload.iss);
-      console.log('sub :>> ', verified.payload.sub);
+      //console.log('payload :>> ', verified.payload);
 
-      return c.json(verified);
+      const userName = verified.payload.email as string;
+
+      const user = await getUserByName(c.env.USER_KV, userName);
+
+      if (!user) {
+        const newUser: User = {
+          id: randomBase64URL(),
+          name: userName,
+          authenticators: [],
+          registered: false,
+        };
+      }
+
+      return c.redirect('/?userName=' + encodeURIComponent(userName));
     } catch (error: any) {
       console.error('Error during OAuth flow:', error);
       return c.json({ error: error.message }, 400);

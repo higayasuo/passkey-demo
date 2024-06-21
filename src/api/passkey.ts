@@ -41,7 +41,7 @@ const schema = z.object({
 });
 
 const passkey = new Hono<Env>()
-  .use(sessionMiddleware)
+  //.use(sessionMiddleware)
   .post(
     '/generate-registration-options',
     zValidator('json', schema),

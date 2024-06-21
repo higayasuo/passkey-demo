@@ -4,8 +4,10 @@ import { Env } from './env';
 import passkey from './api/passkey';
 import apiAuth from './api/auth';
 import auth from './auth';
+import { sessionMiddleware } from './session';
 
 const app = new Hono<Env>()
+  .use(sessionMiddleware)
   .route('/api/passkey', passkey)
   .route('/api/auth', apiAuth)
   .route('/auth', auth)

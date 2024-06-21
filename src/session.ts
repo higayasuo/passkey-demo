@@ -186,13 +186,14 @@ export const generateAndSetSessionId = (c: Context): string => {
     secure: true,
     path: '/',
     maxAge: EXPIRATION_TTL,
-    sameSite: 'Strict',
+    sameSite: 'Lax',
   });
   return sessionId;
 };
 
 export const sessionMiddleware = createMiddleware(
   async (c: Context, next: () => Promise<void>) => {
+    //console.log('sessionCookie:', getCookie(c, SESSION_COOKIE_NAME), c.req.url);
     const sessionId =
       getCookie(c, SESSION_COOKIE_NAME) || generateAndSetSessionId(c);
     c.set('session', new Session(sessionId, c.env.SESSION_KV, EXPIRATION_TTL));

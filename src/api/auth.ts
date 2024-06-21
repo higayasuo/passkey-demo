@@ -5,8 +5,10 @@ import { Env } from '../env';
 import { sessionMiddleware } from '../session';
 
 const auth = new Hono<Env>()
-  .use(sessionMiddleware)
+  //.use(sessionMiddleware)
   .get('/auth-options', async (c) => {
+    //console.log('USER_KV:', c.env.USER_KV);
+    //console.log('SESSION_KV:', c.env.SESSION_KV);
     const authParams = createAuthParams();
     const code_challenge = await oauth2.calculatePKCECodeChallenge(
       authParams.code_verifier

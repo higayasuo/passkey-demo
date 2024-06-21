@@ -2,9 +2,9 @@ name = "passkey-demo"
 compatibility_date = "2023-12-01"
 compatibility_flags = ["nodejs_compat"]
 
-[vars]
-OIDC_ISSUER = "https://accounts.google.com"
-OIDC_REDIRECT_URI = "/auth/callback"
+# [vars]
+# OIDC_ISSUER = "https://accounts.google.com"
+# OIDC_REDIRECT_URI = "/auth/callback"
 
 # MY_VAR = "my-variable"
 
