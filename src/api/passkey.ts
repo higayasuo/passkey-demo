@@ -202,7 +202,7 @@ const passkey = new Hono<Env>()
         osName: os.name || '',
         osVersion: os.version || '',
         transports: body.response.transports || [],
-        selectedTransports: ['internal'];
+        selectedTransports: ['internal'],
       };
       user.authenticators.push(newAuthenticator);
       putAuthenticatorIDUserID(c.env.USER_KV, newAuthenticator.id, user.id);
