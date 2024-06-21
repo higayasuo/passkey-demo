@@ -83,7 +83,8 @@ export const Top = () => {
 
     if (userName) {
       handleLogin(userName);
-      if (localStorage.getItem('has_passkey') === 'false') {
+      const hasPasskey = localStorage.getItem('has_passkey');
+      if (!hasPasskey || localStorage.getItem('has_passkey') === 'false') {
         handleOpenModal();
       }
       window.history.replaceState({}, '', '/');
