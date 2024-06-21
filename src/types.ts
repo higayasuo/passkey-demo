@@ -1,4 +1,5 @@
 import { AuthenticatorTransportFuture } from '@simplewebauthn/types';
+import * as jose from 'jose';
 
 export type User = {
   id: string;
@@ -16,4 +17,14 @@ export type Authenticator = {
   createdAt: number;
   updatedAt: number;
   transports?: AuthenticatorTransportFuture[];
+};
+
+export type AuthParams = {
+  state: string;
+  nonce: string;
+  code_verifier: string;
+};
+
+export type PubKeys = {
+  keys: jose.JWK[];
 };

@@ -131,7 +131,7 @@ describe('session', () => {
     expect(data).toEqual('{"test":1}');
   });
 
-  it('setBoolean', async () => {
+  it('set boolean', async () => {
     const mf = new Miniflare({
       modules: true,
       script: '',
@@ -146,6 +146,34 @@ describe('session', () => {
     expect(data).toEqual('{"test":true}');
   });
 
+  it('setBatch, getBatch, deleteBatch', async () => {
+    const mf = new Miniflare({
+      modules: true,
+      script: '',
+      kvNamespaces: ['SESSION_KV'],
+    });
+    const kv = (await mf.getKVNamespace('SESSION_KV')) as KVNamespace;
+    const session = new Session<{ test: string; test2: boolean }>(
+      'session_id',
+      kv
+    );
+    await session.setBatch({ test: 'aaa', test2: true });
+
+    const result = await session.getBatch('test', 'test2');
+    expect(result.test).toEqual('aaa');
+    expect(result.test2).toEqual(true);
+
+    const data = await kv.get('session_id');
+    expect(data).toEqual('{"test":"aaa","test2":true}');
+
+    const result2 = await session.deleteBatch('test', 'test2');
+    expect(result2.test).toEqual('aaa');
+    expect(result2.test2).toEqual(true);
+
+    const data2 = await kv.get('session_id');
+    expect(data2).toEqual('{}');
+  });
+
   it('delete', async () => {
     const mf = new Miniflare({
       modules: true,
@@ -158,7 +186,8 @@ describe('session', () => {
 
     expect(await session.get('test')).toEqual('aaa');
 
-    await session.delete('test');
+    const result = await session.delete('test');
+    expect(result).toEqual('aaa');
     expect(await session.get('test')).toBeUndefined();
     const data = await kv.get('session_id');
     expect(data).toEqual('{}');

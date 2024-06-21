@@ -67,6 +67,32 @@ export class Session<T extends Record<string, Value> = {}> {
     return this.#data[key as string] as T[K];
   }
 
+  public async getBatch<K extends keyof T>(
+    ...keys: K[]
+  ): Promise<{ [P in K]: T[P] | undefined }> {
+    await this.loadData();
+
+    const result: { [P in K]: T[P] | undefined } = {} as {
+      [P in K]: T[P] | undefined;
+    };
+    keys.forEach((key) => {
+      result[key] = this.#data[key as string] as T[K];
+    });
+    return result;
+  }
+
+  // public async getBatch<K extends keyof T>(
+  //   ...keys: K[]
+  // ): Promise<(T[K] | undefined)[]> {
+  //   await this.loadData();
+
+  //   const result: (T[K] | undefined)[] = [];
+  //   keys.forEach((key) => {
+  //     result.push(this.#data[key as string] as T[K]);
+  //   });
+  //   return result;
+  // }
+
   // public async getString(
   //   key: K['StringValueKey']
   // ): Promise<string | undefined> {
@@ -85,12 +111,26 @@ export class Session<T extends Record<string, Value> = {}> {
   //   return this.get<boolean>(key as string);
   // }
 
-  public async set<K extends keyof T>(key: K, value: T[K]) {
-    await this.loadData();
-    this.#data[key as string] = value;
+  private async saveData() {
     await this.#kv.put(this.sessionId, JSON.stringify(this.#data), {
       expirationTtl: this.expirationTtl,
     });
+  }
+
+  public async set<K extends keyof T>(key: K, value: T[K]) {
+    await this.loadData();
+    this.#data[key as string] = value;
+    await this.saveData();
+  }
+
+  public async setBatch(batch: Partial<T>) {
+    await this.loadData();
+    for (const key in batch) {
+      if (batch.hasOwnProperty(key)) {
+        this.#data[key as string] = batch[key] as Value;
+      }
+    }
+    await this.saveData();
   }
 
   // public async setString(key: K['StringValueKey'], value: string) {
@@ -105,10 +145,32 @@ export class Session<T extends Record<string, Value> = {}> {
   //   return this.set<boolean>(key as string, value);
   // }
 
-  public async delete<K extends keyof T>(key: K) {
+  public async delete<K extends keyof T>(key: K): Promise<T[K] | undefined> {
     await this.loadData();
+
+    const result = this.#data[key as string] as T[K] | undefined;
     delete this.#data[key as string];
-    await this.#kv.put(this.sessionId, JSON.stringify(this.#data));
+    await this.saveData();
+
+    return result;
+  }
+
+  public async deleteBatch<K extends keyof T>(
+    ...keys: K[]
+  ): Promise<{ [P in K]: T[P] | undefined }> {
+    await this.loadData();
+
+    const result: { [P in K]: T[P] | undefined } = {} as {
+      [P in K]: T[P] | undefined;
+    };
+    keys.forEach((key) => {
+      result[key] = this.#data[key as string] as T[K] | undefined;
+      delete this.#data[key as string];
+    });
+
+    await this.saveData();
+
+    return result;
   }
 
   public async clear() {

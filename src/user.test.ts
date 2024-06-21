@@ -106,7 +106,6 @@ describe('user', () => {
       updatedAt: now,
       transports: ['internal'],
     };
-    console.log(authenticator);
 
     user.authenticators.push(authenticator);
     await putAuthenticatorIDUserID(kv, authenticator.id, user.id);
