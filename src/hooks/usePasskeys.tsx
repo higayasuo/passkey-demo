@@ -33,7 +33,7 @@ export const usePasskeys = () => {
     ].$post({
       json: { userName: email },
     });
-    if (genResp.status === 400) {
+    if (genResp.status === 404) {
       setRegError((await genResp.json()).error);
       return;
     }
@@ -114,6 +114,7 @@ export const usePasskeys = () => {
     const resp = await client.api.passkey['unregister'].$post({
       json: { userName: email },
     });
+    console.log('resp :>> ', resp);
     if (resp.status === 200) {
       setUnregSuccess(JSON.stringify(await resp.json(), undefined, 2));
       localStorage.setItem('has_passkey', 'false');
