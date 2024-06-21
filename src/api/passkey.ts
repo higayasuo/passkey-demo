@@ -48,19 +48,14 @@ const passkey = new Hono<Env>()
     async (c) => {
       const { userName } = await c.req.valid('json');
 
-      const user: User = (await getUserByName(c.env.USER_KV, userName)) || {
-        id: randomBase64URL(),
-        name: userName,
-        authenticators: [],
-        registered: false,
-      };
+      const user = await getUserByName(c.env.USER_KV, userName);
 
-      if (user.registered) {
+      if (!user) {
         return c.json(
           {
-            error: `User is already registered: ${userName}`,
+            error: `No user found: ${userName}`,
           },
-          400
+          404
         );
       }
 
@@ -94,6 +89,58 @@ const passkey = new Hono<Env>()
       return c.json(options, 200);
     }
   )
+  // .post(
+  //   '/generate-registration-options',
+  //   zValidator('json', schema),
+  //   async (c) => {
+  //     const { userName } = await c.req.valid('json');
+
+  //     const user: User = (await getUserByName(c.env.USER_KV, userName)) || {
+  //       id: randomBase64URL(),
+  //       name: userName,
+  //       authenticators: [],
+  //       registered: false,
+  //     };
+
+  //     if (user.registered) {
+  //       return c.json(
+  //         {
+  //           error: `User is already registered: ${userName}`,
+  //         },
+  //         400
+  //       );
+  //     }
+
+  //     const options = await generateRegistrationOptions({
+  //       rpName: RP_NAME,
+  //       rpID: RP_ID,
+  //       userID: user.id,
+  //       userName: user.name,
+  //       timeout: 60000,
+  //       attestationType: 'none',
+  //       excludeCredentials: user.authenticators.map((authenticator) => {
+  //         return {
+  //           id: isoBase64URL.toBuffer(authenticator.id),
+  //           type: 'public-key',
+  //           transports: authenticator.transports,
+  //         };
+  //       }),
+  //       authenticatorSelection: {
+  //         residentKey: 'preferred',
+  //         userVerification: 'preferred',
+  //         requireResidentKey: true,
+  //         authenticatorAttachment: 'platform',
+  //       },
+  //       supportedAlgorithmIDs: [-7, -257],
+  //     });
+
+  //     setUser(c.env.USER_KV, user);
+  //     await c.var.session.set('challenge', options.challenge);
+  //     await c.var.session.set('userName', userName);
+
+  //     return c.json(options, 200);
+  //   }
+  // )
   .post('/verify-registration', async (c) => {
     const body: RegistrationResponseJSON = await c.req.json();
     const userName = await c.var.session.get('userName');
@@ -154,13 +201,13 @@ const passkey = new Hono<Env>()
         updatedAt: now,
         osName: os.name || '',
         osVersion: os.version || '',
-        transports: body.response.transports,
+        transports: body.response.transports || [],
+        selectedTransports: ['internal'];
       };
       user.authenticators.push(newAuthenticator);
       putAuthenticatorIDUserID(c.env.USER_KV, newAuthenticator.id, user.id);
     }
 
-    user.registered = true;
     await setUser(c.env.USER_KV, user);
     await c.var.session.delete('challenge');
     await c.var.session.set('loggedIn', true);
@@ -173,14 +220,10 @@ const passkey = new Hono<Env>()
     async (c) => {
       const { userName } = await c.req.valid('json');
 
-      if (!userName) {
-        return c.json({ error: `No user name found: ${userName}` }, 404);
-      }
-
       const user = await getUserByName(c.env.USER_KV, userName);
 
       if (!user) {
-        return c.json({ error: 'user not found' }, 404);
+        return c.json({ error: `No user found: ${userName}` }, 404);
       }
 
       const opts: GenerateAuthenticationOptionsOpts = {
@@ -189,7 +232,7 @@ const passkey = new Hono<Env>()
           id: isoBase64URL.toBuffer(authenticator.id),
           type: 'public-key',
           //transports: authenticator.transports,
-          transports: ['internal'],
+          transports: authenticator.selectedTransports,
         })),
         userVerification: 'preferred',
         rpID: RP_ID,
@@ -203,6 +246,42 @@ const passkey = new Hono<Env>()
       return c.json(options, 200);
     }
   )
+  // .post(
+  //   '/generate-authentication-options',
+  //   zValidator('json', schema),
+  //   async (c) => {
+  //     const { userName } = await c.req.valid('json');
+
+  //     if (!userName) {
+  //       return c.json({ error: `No user name found: ${userName}` }, 404);
+  //     }
+
+  //     const user = await getUserByName(c.env.USER_KV, userName);
+
+  //     if (!user) {
+  //       return c.json({ error: 'user not found' }, 404);
+  //     }
+
+  //     const opts: GenerateAuthenticationOptionsOpts = {
+  //       timeout: 60000,
+  //       allowCredentials: user.authenticators.map((authenticator) => ({
+  //         id: isoBase64URL.toBuffer(authenticator.id),
+  //         type: 'public-key',
+  //         //transports: authenticator.transports,
+  //         transports: ['internal'],
+  //       })),
+  //       userVerification: 'preferred',
+  //       rpID: RP_ID,
+  //     };
+
+  //     const options = await generateAuthenticationOptions(opts);
+
+  //     await c.var.session.set('challenge', options.challenge);
+  //     await c.var.session.set('userName', userName);
+
+  //     return c.json(options, 200);
+  //   }
+  // )
   .post('/verify-authentication', async (c) => {
     const body: AuthenticationResponseJSON = await c.req.json();
     const userName = await c.var.session.get('userName');
@@ -214,20 +293,20 @@ const passkey = new Hono<Env>()
     const user = await getUserByName(c.env.USER_KV, userName);
 
     if (!user) {
-      return c.json({ error: `User not found: ${userName}` }, 404);
+      return c.json({ error: `No user found: ${userName}` }, 404);
     }
 
     const expectedChallenge = await c.var.session.get('challenge');
 
     if (!expectedChallenge) {
-      return c.json({ error: `Challenge not found` }, 404);
+      return c.json({ error: `No challenge found` }, 404);
     }
 
     const credentialID = isoBase64URL.toBuffer(body.id);
     const authenticator = findAuthenticator(user.authenticators, credentialID);
 
     if (!authenticator) {
-      return c.json({ error: 'authenticator is not registered' }, 404);
+      return c.json({ error: 'Authenticator is not registered' }, 404);
     }
 
     let verification: VerifiedAuthenticationResponse;

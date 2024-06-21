@@ -6,7 +6,7 @@ import * as jose from 'jose';
 import { Env } from './env';
 import { sessionMiddleware } from './session';
 import type { AuthParams, PubKeys, User } from './types';
-import { getUserByName } from './user';
+import { getUserByName, setUser } from './user';
 import { randomBase64URL } from './utils';
 
 export const createAuthParams = (): AuthParams => {
@@ -125,15 +125,25 @@ const auth = new Hono<Env>()
         const newUser: User = {
           id: randomBase64URL(),
           name: userName,
+          oidcAccount: {
+            iss: verified.payload.iss as string,
+            sub: verified.payload.sub as string,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          },
           authenticators: [],
-          registered: false,
         };
+        await setUser(c.env.USER_KV, newUser);
+      } else {
+        user.oidcAccount.updatedAt = Date.now();
+        await setUser(c.env.USER_KV, user);
       }
+      await c.var.session.set('loggedIn', true);
 
       return c.redirect('/?userName=' + encodeURIComponent(userName));
     } catch (error: any) {
       console.error('Error during OAuth flow:', error);
-      return c.json({ error: error.message }, 400);
+      return c.redirect('/?error=' + encodeURIComponent(error.message));
     }
   });
 

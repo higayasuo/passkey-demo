@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 import * as oauth2 from 'oauth4webapi';
 import { createAuthParams, getClient, getAuthorizationServer } from '../auth';
 import { Env } from '../env';
-import { sessionMiddleware } from '../session';
 
 const auth = new Hono<Env>()
   //.use(sessionMiddleware)

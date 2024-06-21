@@ -4,8 +4,9 @@ import * as jose from 'jose';
 export type User = {
   id: string;
   name: string;
+  oidcAccount: OIDCAccount;
   authenticators: Authenticator[];
-  registered: boolean;
+  //registered: boolean;
 };
 
 export type Authenticator = {
@@ -16,7 +17,15 @@ export type Authenticator = {
   osVersion: string;
   createdAt: number;
   updatedAt: number;
-  transports?: AuthenticatorTransportFuture[];
+  transports: AuthenticatorTransportFuture[];
+  selectedTransports: AuthenticatorTransportFuture[];
+};
+
+export type OIDCAccount = {
+  iss: string;
+  sub: string;
+  createdAt: number;
+  updatedAt: number;
 };
 
 export type AuthParams = {
