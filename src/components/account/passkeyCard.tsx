@@ -69,14 +69,15 @@ export const PasskeyCard = ({
                     onlyDate
                   )}
                 </p>
+              </div>
+              <div>
                 <p>
                   登録OS：{info.osName} {info.osVersion}
                 </p>
               </div>
               <div>
-                <p>最新の利用日</p>
                 <p>
-                  {info.osName} {info.osVersion}:{' '}
+                  最新の利用日：
                   {new Date(info.updatedAt).toLocaleDateString(
                     locale,
                     dateTime
