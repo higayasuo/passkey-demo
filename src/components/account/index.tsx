@@ -5,6 +5,7 @@ import { Button } from '../common/button';
 import { usePasskeys } from '../../hooks/usePasskeys';
 import { useAccount } from '../../hooks/useAccount';
 import { useEffect, useState } from 'hono/jsx';
+import { css, Style } from 'hono/css';
 
 type ContainerProps = {
   title: string;
@@ -83,6 +84,7 @@ export const Account = () => {
 
   return (
     <main class="account-page">
+      <Style />
       <h2>アカウント管理</h2>
 
       <Container title="現在のログイン設定">
@@ -94,9 +96,28 @@ export const Account = () => {
         </ol>
       </Container>
       <Container title="アカウント情報">
+        <div
+          class={css`
+            display: grid;
+            place-items: center;
+            width: 308px;
+            height: 41px;
+            border-radius: 10px;
+            background: #f5f5f5;
+            font-family: Helvetica;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 19.5px;
+            text-align: center;
+          `}
+        >
+          <p>{email}</p>
+        </div>
+      </Container>
+      <Container title="Googleアカウント">
         <GoogleCard />
       </Container>
-      <Container title="設定されているパスキー">
+      <Container title="パスキー">
         <div class="passkey-div">
           <div class="card-area">
             {/* TODO ローカル以外のパスキーもある */}
