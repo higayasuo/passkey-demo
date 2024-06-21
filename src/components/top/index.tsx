@@ -31,19 +31,18 @@ const SiginedInModal = ({ type, handleClose }: SigninModalProps) => {
   return (
     <Modal handleClose={handleClose}>
       <div class="signedin-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>{title}</h3>
+        {/* <h3>{title}</h3> */}
         <img
           src="/static/img/passkey-cheked-icon.svg"
           alt="passkey-cheked-icon"
         />
-        <p>Innolab Storeをお楽しみください！</p>
-        {/* TODO パスキーを作成する文言を入れる */}
+        {/* <p>Innolab Storeをお楽しみください！</p>
         <div class="qa">
           <h4>パスキーを作成しませんか？</h4>
           <p>
             パスキーを作成するとお使いの端末の生体認証などを利用してログインすることができます。
           </p>
-        </div>
+        </div> */}
         <div class="btn-area">
           <Button
             text="パスキーをを作成する"
@@ -96,6 +95,7 @@ export const Top = () => {
       {openModal && (
         <SiginedInModal type="signup" handleClose={handleCloseModal} />
       )}
+      <SiginedInModal type="signup" handleClose={handleCloseModal} />
       <h2 class="main-color">夏インテリアの季節！</h2>
       <p class="main-color">夏にぴったりなインテリアが見つかります</p>
       <img src="/static/img/main-image.svg" alt="main-image" />
