@@ -95,7 +95,6 @@ export const Top = () => {
       {openModal && (
         <SiginedInModal type="signup" handleClose={handleCloseModal} />
       )}
-      <SiginedInModal type="signup" handleClose={handleCloseModal} />
       <h2 class="main-color">夏インテリアの季節！</h2>
       <p class="main-color">夏にぴったりなインテリアが見つかります</p>
       <img src="/static/img/main-image.svg" alt="main-image" />
